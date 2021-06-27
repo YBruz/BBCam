@@ -1,0 +1,7 @@
+tensorflow~=2.5.0
+tensorflow-gpu~=2.5.0
+opencv-python~=4.5.2.54
+numpy~=1.19.5
+pyvirtualcam~=0.8.0
+tfjs-graph-converter~=1.4.2
+tf-bodypix~=0.3.5
