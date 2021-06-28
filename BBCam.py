@@ -63,6 +63,7 @@ if __name__ == "__main__":
     # params
     cam_fps = 20
     show_cam = bool(True)
+    debug_cam = bool(False)
     mask_threshold_val = 0.75
     mask_dilation_val = 51
     mask_smooth_val = odd(mask_dilation_val * 1.5)
@@ -71,13 +72,13 @@ if __name__ == "__main__":
 
     # get commandline args
     argv = sys.argv[1:]
-    opts, args = getopt.getopt(argv, "", ["headless", "fps=","mtresh=", "mdil=", "msmooth=", "mblur=", "bblur="])
+    opts, args = getopt.getopt(argv, "", ["headless", "debug", "fps=","mtresh=", "mdil=", "msmooth=", "mblur=", "bblur="])
 
     for opt, arg in opts:
         if opt in '--fps':
             cam_fps = int(arg)
         elif opt in '--mtresh':
-                mask_threshold_val = max(min(0, int(arg)), 1)
+                mask_threshold_val = min(max(0.0, float(arg)), 1.0)
         elif opt in '--mdil':
             mask_dilation_val = int(arg)
         elif opt in '--msmooth':
@@ -88,6 +89,8 @@ if __name__ == "__main__":
             bg_blur_val = int(arg)
         elif opt in '--headless':
             show_cam = bool(False)
+        elif opt in '--debug':
+            debug_cam = bool(True)
 
     # create camera
     with vcam.Camera(width=frame.shape[1], height=frame.shape[0], fps=cam_fps, fmt=vcam.PixelFormat.BGR) as cam:
@@ -111,25 +114,34 @@ if __name__ == "__main__":
             # mask is normalised by default
             mask = np.multiply(mask, 255)
 
-            # opencv.imshow('frame', frame)
-            # opencv.imshow('mask', mask)
+            if debug_cam:
+                opencv.imshow('frame', frame)
+                opencv.imshow('mask', mask)
 
             # dilate the mask
             mask_dilated = dilate_mask(mask, mask_dilation_val)
-            # opencv.imshow('mask_dilated', mask_dilated)
+
+            if debug_cam:
+                opencv.imshow('mask_dilated', mask_dilated)
 
             # smoothen out the mask
             mask_smooth = smooth_mask(mask_dilated, mask_smooth_val)
-            # opencv.imshow('mask_smooth', mask_smooth)
+
+            if debug_cam:
+                opencv.imshow('mask_smooth', mask_smooth)
 
             # blur the mask
             mask_blurred = opencv.GaussianBlur(mask_smooth, (mask_blur_val, mask_blur_val), 0)
             mask_blurred = opencv.cvtColor(mask_blurred, opencv.COLOR_GRAY2BGR)
-            # opencv.imshow('mask_blurred', mask_blurred)
+
+            if debug_cam:
+                opencv.imshow('mask_blurred', mask_blurred)
 
             # thresh the mask (back to [0-1] range)
             mask_threshed = threshold(mask_blurred, 1)
-            # opencv.imshow('mask_threshed', mask_threshed)
+
+            if debug_cam:
+                opencv.imshow('mask_threshed', mask_threshed)
 
             # blur the frame to use as background
             bg = opencv.blur(frame, (bg_blur_val, bg_blur_val), 0)
